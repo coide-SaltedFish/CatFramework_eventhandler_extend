@@ -1,0 +1,12 @@
+plugin:
+  name: "猫猫事件处理扩展"
+  description: "这是对主框架的事件处理器的扩展"
+  author: "一只大猫条"
+
+  mainClass: "org.sereinfish.catcat.framework.eventhandler.extend.PluginMain"
+
+
+dependencies:
+  plugins:
+    - id: "org.catcat.sereinfish.qqbot.universal.abstraction.layer"
+      optional: false
