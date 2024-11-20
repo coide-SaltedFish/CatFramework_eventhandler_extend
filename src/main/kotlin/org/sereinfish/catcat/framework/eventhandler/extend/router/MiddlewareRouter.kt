@@ -20,6 +20,10 @@ class MiddlewareRouter(
     val lastRouter: MessageRouter
 ): MessageRouter {
 
+    override fun encode(): String {
+        TODO("Not yet implemented")
+    }
+
     /**
      * 分割消息内容
      *
@@ -32,17 +36,17 @@ class MiddlewareRouter(
         var i = 0;
         var textIndex = -1
 
-        while (i < context.tempMessage.size && contextTextMatch(context, i)) {
-            val data = messageSplit(context.tempMessage, i, ++ textIndex)
+        while (i < context.waitHandleMessages.size && contextTextMatch(context, i)) {
+            val data = messageSplit(context.waitHandleMessages, i, ++ textIndex)
 
             // 构建上下文
             val startRouterContext = context.clone()
-            startRouterContext.tempMessage = data.startMessage
-            startRouterContext.tempHandleMessage.clear()
+            startRouterContext.waitHandleMessages = data.startMessage
+            startRouterContext.handledMessages.clear()
 
             val lastRouterContext = context.clone()
-            lastRouterContext.tempMessage = data.lastMessage
-            lastRouterContext.tempHandleMessage.clear()
+            lastRouterContext.waitHandleMessages = data.lastMessage
+            lastRouterContext.handledMessages.clear()
 
             // 进行匹配
             if (startRouter.match(startRouterContext) && lastRouter.match(lastRouterContext)) {
@@ -65,7 +69,7 @@ class MiddlewareRouter(
     }
 
     private fun contextTextMatch(context: RouterContext, i: Int): Boolean {
-        val element = context.tempMessage[i]
+        val element = context.waitHandleMessages[i]
         return if (element is PlantText){
             return i < element.text.length
         }else false
@@ -162,12 +166,12 @@ class MiddlewareRouter(
         fun merge(context: RouterContext) {
             context.merge(startRouterContext)
             context.merge(lastRouterContext)
-            context.tempHandleMessage.addAll(startRouterContext.tempHandleMessage)
-            context.tempHandleMessage.addAll(lastRouterContext.tempHandleMessage)
+            context.handledMessages.addAll(startRouterContext.handledMessages)
+            context.handledMessages.addAll(lastRouterContext.handledMessages)
             // 清除
-            context.tempMessage.clear()
-            context.tempMessage.addAll(startRouterContext.tempMessage)
-            context.tempMessage.addAll(lastRouterContext.tempMessage)
+            context.waitHandleMessages.clear()
+            context.waitHandleMessages.addAll(startRouterContext.waitHandleMessages)
+            context.waitHandleMessages.addAll(lastRouterContext.waitHandleMessages)
         }
     }
 

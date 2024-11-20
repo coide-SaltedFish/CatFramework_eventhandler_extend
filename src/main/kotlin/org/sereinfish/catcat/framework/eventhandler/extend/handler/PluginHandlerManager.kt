@@ -11,6 +11,8 @@ import org.sereinfish.catcat.framework.eventhandler.extend.utils.PackageUtils
 
 object PluginHandlerManager {
     private val logger = logger()
+    private val _handlers = ArrayList<EventHandler<Event, EventHandlerContext<Event>>>()
+    val handlers: List<EventHandler<Event, EventHandlerContext<Event>>> get() = _handlers
 
     init {
         logger.info("已扫描载入 ${scanPlugin()} 个事件处理器")
@@ -118,6 +120,8 @@ object PluginHandlerManager {
                             }
 
                             EventManager.registerHandler(handler)
+                            _handlers.add(handler)
+
                             count ++
                             logger.info("注册扫描处理器：${clazz.name}.${method.name}")
                         }
@@ -139,13 +143,15 @@ object PluginHandlerManager {
                                 }
 
                                 EventManager.registerHandler(eventHandler)
+                                _handlers.add(eventHandler)
+
                                 count ++
                                 logger.info("注册扫描处理器：${clazz.name}.${method.name}[$index]")
                             }
                         }
                     } else logger.warn(
                         "${clazz.name}.${method.name}" +
-                                "(${method.parameters.joinToString { it.name }})" +
+                                "(${method.parameters.joinToString { it.name }})加载失败，" +
                                 "已标记为处理器，但返回类型错误：${method.returnType.name}"
                     )
                 }

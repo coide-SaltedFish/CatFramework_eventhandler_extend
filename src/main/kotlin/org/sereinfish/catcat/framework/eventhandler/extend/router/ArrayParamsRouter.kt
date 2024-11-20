@@ -12,6 +12,11 @@ class ArrayParamsRouter(
     val key: String,
     val matchBlock: ArrayMatchInfo.() -> MessageRouter
 ): MessageRouter {
+    override fun encode(): String {
+        // TODO array 路由支持序列化
+        error("array路由暂不支持序列化")
+    }
+
     override fun parser(context: RouterContext): Boolean {
         var index = 0
 
@@ -19,7 +24,7 @@ class ArrayParamsRouter(
 
         while (true) {
             val childContext = context.clone()
-            childContext.tempHandleMessage.clear()
+            childContext.handledMessages.clear()
             val matchResult = ArrayMatchInfo(index).matchBlock().match(childContext)
 
             if (matchResult.not())
@@ -30,8 +35,8 @@ class ArrayParamsRouter(
                 params.add(param)
 
                 context.merge(childContext)
-                context.tempMessage = childContext.tempMessage
-                context.tempHandleMessage.addAll(childContext.tempHandleMessage)
+                context.waitHandleMessages = childContext.waitHandleMessages
+                context.handledMessages.addAll(childContext.handledMessages)
             }
             index ++
         }

@@ -6,31 +6,58 @@ import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.MessageCh
 import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.MessageFactory
 import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.MessageRouter
 import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.MessageRouterBuilder
-import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.RouterContext
+import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.MessageRouterContext
 import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.SimpleMessageRouterBuilder
 import org.sereinfish.catcat.framework.eventhandler.extend.filter.LimitCallIntervalFilter
 import org.sereinfish.catcat.framework.eventhandler.extend.filter.LimitRateFilter
 import org.sereinfish.catcat.framework.eventhandler.extend.handler.CatEventHandlerExtendContext
+import org.sereinfish.catcat.framework.eventhandler.extend.handler.CatEventHandlerPropertyContext
 import java.io.InputStream
+
+val CatEventHandlerPropertyContext<out MessageEvent>.routerInfo: MessageRouter?
+    get() = this["routerInfo"] as? MessageRouter
 
 /**
  * 路由构建扩展
  */
 fun <E: MessageEvent> EventHandlerBuilder<E>.router(block: MessageRouterBuilder.(E) -> Unit) {
     filter {
-        val context = RouterContext(event)
-        SimpleMessageRouterBuilder().apply { block(event) }.build().match(context).also {
-            context.mergeTo(this)
+        val router = SimpleMessageRouterBuilder().apply { block(event) }.build()
+        val context = MessageRouterContext(event.bot, event.message)
+        router.match(context).also {
+            context.mergeTo(this) // 将路由上下文合并到事件处理器上下文
+
+            eventHandlerContext["routerInfo"] = router // 将路由对象保存到上下文
         }
     }
 }
 
 fun <E: MessageEvent> EventHandlerBuilder<E>.router(router: MessageRouter) {
     filter {
-        val context = RouterContext(event)
+        val context = MessageRouterContext(event.bot, event.message)
         router.match(context).also {
-            context.merge(this)
+            context.mergeTo(this)
+
+            eventHandlerContext["routerInfo"] = router // 将路由对象保存到上下文
         }
+    }
+    builder {
+        eventHandlerContext["routerInfo"] = router
+    }
+}
+
+fun <E: MessageEvent> EventHandlerBuilder<E>.staticRouter(block: MessageRouterBuilder.() -> Unit) {
+    val router = SimpleMessageRouterBuilder().apply { block() }.build()
+    filter {
+        val context = MessageRouterContext(event.bot, event.message)
+        router.match(context).also {
+            context.mergeTo(this)
+
+            eventHandlerContext["routerInfo"] = router // 将路由对象保存到上下文
+        }
+    }
+    builder {
+        eventHandlerContext["routerInfo"] = router
     }
 }
 

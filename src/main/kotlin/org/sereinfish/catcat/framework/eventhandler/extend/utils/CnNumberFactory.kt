@@ -38,7 +38,7 @@ object CnNumberFactory {
     )
 
     fun isCnNumber(cn: String): Boolean {
-        return "^($_0|$_1_9999999999999999)$".toRegex().matches(cn)
+        return "^($_0|$_1_9999999999999999)$".toRegex().matches(preProcess(cn))
     }
 
     /**
@@ -88,7 +88,9 @@ object CnNumberFactory {
         }
     }
 
-    fun cnToNumber(cn: String): Int {
+    fun cnToNumber(cnNumber: String): Int {
+        val cn = preProcess(cnNumber)
+
         if (isCnNumber(cn).not()) error("无法识别中文数字：$cn")
         var sumValue = 0
         var value = 0
@@ -109,5 +111,26 @@ object CnNumberFactory {
             }
         }
         return sumValue + value
+    }
+
+    /**
+     * 预处理输入的中文数字
+     */
+    private fun preProcess(cnNumber: String): String {
+        var ret =  when(cnNumber) {
+            "十" -> "一十"
+            "百" -> "一百"
+            "千" -> "一千"
+            "万" -> "一万"
+            "亿" -> "一亿"
+            "两", "俩" -> "二"
+            else -> cnNumber
+        }
+        ret = when {
+            ret.startsWith("十") -> "一$ret"
+            else -> ret
+        }
+
+        return ret
     }
 }

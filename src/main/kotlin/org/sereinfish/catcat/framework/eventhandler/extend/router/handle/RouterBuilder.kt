@@ -2,7 +2,7 @@ package org.sereinfish.catcat.framework.eventhandler.extend.router.handle
 
 import org.catcat.sereinfish.qqbot.universal.abstraction.layer.events.message.MessageEvent
 import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.MessageRouterBuilder
-import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.RouterContext
+import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.MessageRouterContext
 import org.catcat.sereinfish.qqbot.universal.abstraction.layer.message.router.SimpleMessageRouterBuilder
 import org.sereinfish.cat.frame.event.handler.EventHandler
 import org.sereinfish.catcat.framework.eventhandler.extend.build.EventFilterHandlerBuilder
@@ -15,7 +15,7 @@ class RouterBuilder<E: MessageEvent>(
 
     fun build(): EventHandler<E, CatEventHandlerExtendContext<E>> {
         return EventFilterHandlerBuilder(level){
-            val context = RouterContext(event)
+            val context = MessageRouterContext((event as MessageEvent).bot, (event as MessageEvent).message)
             SimpleMessageRouterBuilder().apply { block(this@EventFilterHandlerBuilder) }.build().match(context).also {
                 context.mergeTo(this)
             }

@@ -9,20 +9,25 @@ import org.sereinfish.catcat.framework.eventhandler.extend.router.entity.ArrayMa
 class ArrayRouter(
     val matchBlock: ArrayMatchInfo.() -> MessageRouter
 ): MessageRouter {
+
+    override fun encode(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun parser(context: RouterContext): Boolean {
         var index = 0
 
         while (true) {
             val childContext = context.clone()
-            childContext.tempHandleMessage.clear()
+            childContext.handledMessages.clear()
             val matchResult = ArrayMatchInfo(index).matchBlock().match(childContext)
 
             if (matchResult.not())
                 break
             else {
                 context.merge(childContext)
-                context.tempMessage = childContext.tempMessage
-                context.tempHandleMessage.addAll(childContext.tempHandleMessage)
+                context.waitHandleMessages = childContext.waitHandleMessages
+                context.handledMessages.addAll(childContext.handledMessages)
             }
 
             index ++
